@@ -1,0 +1,37 @@
+name: Daily Free Item Claim
+
+on:
+  # 매일 UTC 00:00 (한국시간 오전 9시)에 자동 실행
+  schedule:
+    - cron: "0 0 * * *"
+  # Actions 탭에서 직접 'Run workflow' 버튼으로 테스트할 수 있게 해주는 설정
+  workflow_dispatch:
+
+jobs:
+  claim:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 코드 가져오기
+        uses: actions/checkout@v4
+
+      - name: 파이썬 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Playwright 및 브라우저 설치
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium
+
+      - name: 자동 구매 스크립트 실행
+        env:
+          PLAYER_ID: ${{ secrets.PLAYER_ID }}
+        run: python claim_free.py
+
+      - name: 실행 결과 스크린샷 저장
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: claim-result
+          path: result.png
